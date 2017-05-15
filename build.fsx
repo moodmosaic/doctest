@@ -3,7 +3,7 @@ open System.IO
 
 if not (File.Exists "paket.exe") then
     let url =
-        "https://github.com/fsprojects/Paket/releases/download/0.26.3/paket.exe"
+        "https://github.com/fsprojects/Paket/releases/download/4.8.5/paket.exe"
     use web =
         new Net.WebClient ()
     let tmp =
@@ -12,14 +12,20 @@ if not (File.Exists "paket.exe") then
     File.Move (tmp, Path.GetFileName url)
 
 #r "paket.exe"
-
 Paket.Dependencies.Install """source https://nuget.org/api/v2
-nuget FAKE 3.14.9
-""";;
+nuget FAKE
+nuget Argu
+nuget FSharp.Data
+nuget FSharp.Compiler.Service
+nuget System.Xml.Linq
+nuget Unquote""";;
 
 #r "packages/FAKE/tools/FakeLib.dll"
-open Fake
 open Fake.FscHelper
+open Fake
+
+let Target =
+    Fake.TargetHelper.Target
 
 let outputPath =
     Path.Combine (__SOURCE_DIRECTORY__, "bin")
@@ -35,17 +41,32 @@ Target "CleanOutputPath"
             outputPath)
 
 let references =
-    []
+    [ "packages/Argu/lib/net40/Argu.dll"
+      "packages/FSharp.Compiler.Service/lib/net45/FSharp.Compiler.Service.dll"
+      "packages/FSharp.Core/lib/net45/FSharp.Core.dll"
+      "packages/FSharp.Data/lib/net40/FSharp.Data.dll"
+      "packages/System.Xml.Linq/lib/net20/System.Xml.Linq.dll"
+      "packages/Unquote/lib/net45/Unquote.dll" ]
+
+let referencedAssemblies =
+    let buildTarget name =
+        Path.Combine (__SOURCE_DIRECTORY__, name)
+    references
+    |> List.map buildTarget
+    |> List.map (fun path ->
+        if not <| File.Exists(path)
+            then failwithf "File not found '%s'" path
+        path)
 
 Target "Compile"
     (fun _ ->
         [ "Program.fs" ]
-        |> Fsc
-            (fun opts ->
-               { opts with
-                   References = references
-                   FscTarget  = Exe
-                   Output     = Path.Combine (outputPath, "doctest.exe") }))
+        |> Compile [
+            Out <| Path.Combine (outputPath, "doctest.exe")
+            FscHelper.Target TargetType.Exe
+            NoFramework
+            References referencedAssemblies
+        ])
 
 Target "CopyAssemblyReferences"
     (fun _ ->

@@ -71,7 +71,7 @@ module ParseRun =
         let xs =
             x.Split([| '\n' |])
         
-        let mutable result = true
+        let result = ref true
         xs
         |> Array.indexed
         |> Array.filter (fun (_, x) -> x.Contains ">>>")
@@ -95,8 +95,8 @@ module ParseRun =
                    fsi.EvalExpression
                        <| expected + " =! " + "(" + actual + ")"
                        |> ignore
-                   result <- false)
-        result
+                   result := false)
+        !result
 
 [<EntryPoint>]
 let main (argv : string []) : int =
@@ -174,8 +174,8 @@ let main (argv : string []) : int =
     let ERROR_INVALID_FUNCTION =
         1
 
-    let setupResults =
-        setup |> Array.map runSetup
+    setup |> Array.map runSetup |> ignore
+
     let testsResults =
         tests |> Array.map runTests
 
