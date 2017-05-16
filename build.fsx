@@ -60,7 +60,7 @@ let referencedAssemblies =
 
 Target "Compile"
     (fun _ ->
-        [ "Program.fs" ]
+        [ "Doctest.fs" ]
         |> Compile [
             Out <| Path.Combine (outputPath, "doctest.exe")
             FscHelper.Target TargetType.Exe
