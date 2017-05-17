@@ -43,7 +43,7 @@ let private unquotePath =
         System.Reflection.Assembly.GetExecutingAssembly().Location)
     |> combine "Unquote.dll"
 
-module ParseRun =
+module Runner =
     let setup (x : string) (fsi : FsiEvaluationSession) =
         x.Split ([| '\n' |])
         |> Array.filter (fun x -> x.Contains ">>>")
@@ -97,13 +97,6 @@ with
             | DocPath _ -> "path of the assembly's XML documentation."
             | FsiPath _ -> "path of the F# Interactive (fsi/fsharpi)."
 
-// System Error Codes taken from
-// http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382.aspx
-let ERROR_SUCCESS =
-    0
-let ERROR_INVALID_FUNCTION =
-    1
-
 [<EntryPoint>]
 let main (argv : string []) : int =
     let pExiter =
@@ -112,7 +105,7 @@ let main (argv : string []) : int =
                 function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let cliArgs =
         (ArgumentParser.Create<Args> (
-              programName  = "doctest.exe"
+              programName  = "Doctest"
             , errorHandler = pExiter)).ParseCommandLine argv
     
     let asmPath =
@@ -129,7 +122,7 @@ let main (argv : string []) : int =
               <@ FsiPath @>
             , defaultValue = getDefaultFsi ())
 
-    let session =
+    let fsiSession =
         FsiEvaluationSession.Create (
               FsiEvaluationSession.GetDefaultConfiguration ()
             , [| fsiPath
@@ -142,19 +135,19 @@ let main (argv : string []) : int =
             , Console.Error
             )
 
-    session.EvalInteraction <|
+    fsiSession.EvalInteraction <|
         sprintf """#r @"%s";;""" asmPath
     
     let xmlDoc =
         XmlDoc.Load docPath
 
-    session.EvalInteraction <|
+    fsiSession.EvalInteraction <|
         sprintf "open %s;;" xmlDoc.Assembly.Name
 
-    session.EvalInteraction <|
+    fsiSession.EvalInteraction <|
         sprintf """#r @"%s";;""" unquotePath
 
-    session.EvalInteraction <|
+    fsiSession.EvalInteraction <|
         sprintf "open %s;;" "Swensen.Unquote"
     
     let setup =
@@ -168,17 +161,15 @@ let main (argv : string []) : int =
         |> Array.filter (fun x -> x.Contains ">>>")
         |> Array.except setup
 
-    let runSetup x =
-        ParseRun.setup x session
-    let runTests x =
-        ParseRun.tests x session
-
-    setup |> Array.map runSetup |> ignore
+    let setupResults =
+        setup
+        |> Array.map (fun x -> fsiSession |> Runner.setup x)
 
     let testsResults =
-        tests |> Array.map runTests
+        tests
+        |> Array.map (fun x -> fsiSession |> Runner.tests x)
 
-    if  testsResults |> Array.contains false then
-        ERROR_INVALID_FUNCTION
+    if  testsResults |> Array.forall ((=) true) then
+        0 // Success
     else
-        ERROR_SUCCESS
+        1 // Failure
