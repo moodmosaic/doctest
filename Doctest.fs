@@ -1,28 +1,12 @@
-﻿open Argu
-open FSharp.Data
-open Microsoft.FSharp.Compiler.Interactive.Shell
-open System
-open System.IO
-open System.Reflection
-
-[<assembly: AssemblyTitle       ("doctest")
-; assembly: AssemblyDescription ("Test interactive F# examples, similar to doctest for Haskell.")
-; assembly: AssemblyVersion     ("0.0.1")>]
-
+﻿[<assembly: System.Reflection.AssemblyTitle       ("doctest")
+; assembly: System.Reflection.AssemblyDescription ("Test interactive F# examples.")
+; assembly: System.Reflection.AssemblyVersion     ("0.0.1")>]
 do ()
 
-type private Args =
-    | [<MainCommand>]
-      AsmPath of asmPath : string
-    | DocPath of docPath : string
-    | FsiPath of fsiPath : string
-with
-    interface IArgParserTemplate with
-        member x.Usage =
-            match x with
-            | AsmPath _ -> "path of the assembly containing doctests."
-            | DocPath _ -> "path of the assembly's XML documentation."
-            | FsiPath _ -> "path of the F# Interactive (fsi/fsharpi)."
+open System
+open System.IO
+open FSharp.Data
+open Microsoft.FSharp.Compiler.Interactive.Shell
 
 type private XmlDoc =
     XmlProvider<
@@ -56,7 +40,7 @@ let private unquotePath =
     let combine path1 path2 =
         Path.Combine (path2, path1) 
     Path.GetDirectoryName (
-        Assembly.GetExecutingAssembly().Location)
+        System.Reflection.Assembly.GetExecutingAssembly().Location)
     |> combine "Unquote.dll"
 
 module ParseRun =
@@ -98,6 +82,28 @@ module ParseRun =
                    result := false)
         !result
 
+open Argu
+
+type private Args =
+    | [<MainCommand>]
+      AsmPath of asmPath : string
+    | DocPath of docPath : string
+    | FsiPath of fsiPath : string
+with
+    interface IArgParserTemplate with
+        member x.Usage =
+            match x with
+            | AsmPath _ -> "path of the assembly containing doctests."
+            | DocPath _ -> "path of the assembly's XML documentation."
+            | FsiPath _ -> "path of the F# Interactive (fsi/fsharpi)."
+
+// System Error Codes taken from
+// http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382.aspx
+let ERROR_SUCCESS =
+    0
+let ERROR_INVALID_FUNCTION =
+    1
+
 [<EntryPoint>]
 let main (argv : string []) : int =
     let pExiter =
@@ -131,7 +137,7 @@ let main (argv : string []) : int =
               // Read input from the given reader.
             , new StringReader ""
               // Write output to the given writer.
-            , new StringWriter (new System.Text.StringBuilder ())
+            , new StringWriter (System.Text.StringBuilder ())
               // Write errors to the given writer.
             , Console.Error
             )
@@ -166,13 +172,6 @@ let main (argv : string []) : int =
         ParseRun.setup x session
     let runTests x =
         ParseRun.tests x session
-
-    // System Error Codes taken from 
-    // http://msdn.microsoft.com/en-us/library/windows/desktop/ms681382.aspx
-    let ERROR_SUCCESS =
-        0
-    let ERROR_INVALID_FUNCTION =
-        1
 
     setup |> Array.map runSetup |> ignore
 
