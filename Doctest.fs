@@ -1,12 +1,9 @@
-﻿[<assembly: System.Reflection.AssemblyTitle       ("doctest")
+﻿[<assembly: System.Reflection.AssemblyTitle       ("Doctest")
 ; assembly: System.Reflection.AssemblyDescription ("Test interactive F# examples.")
 ; assembly: System.Reflection.AssemblyVersion     ("0.0.1")>]
 do ()
 
-open System
-open System.IO
 open FSharp.Data
-open Microsoft.FSharp.Compiler.Interactive.Shell
 
 type private XmlDoc =
     XmlProvider<
@@ -25,6 +22,8 @@ type private XmlDoc =
                </members>
            </doc>""">
 
+open System
+
 let private getDefaultFsi () =
     // http://www.mono-project.com/docs/faq/technical/
     // #how-to-detect-the-execution-platform
@@ -32,6 +31,8 @@ let private getDefaultFsi () =
     | 4 | 128 -> "fshapri" // Linux
     | 6       -> "fsharpi" // macOS
     | _       -> "fsi"     // WinNT
+
+open System.IO
 
 let private guessDocsPath asmPath =
     Path.ChangeExtension (asmPath, ".XML")
@@ -42,6 +43,8 @@ let private unquotePath =
     Path.GetDirectoryName (
         System.Reflection.Assembly.GetExecutingAssembly().Location)
     |> combine "Unquote.dll"
+
+open Microsoft.FSharp.Compiler.Interactive.Shell
 
 module Runner =
     let setup (x : string) (fsi : FsiEvaluationSession) =
