@@ -10,20 +10,6 @@ open Microsoft.FSharp.Compiler.Interactive.Shell
 ; assembly: AssemblyVersion     ("0.0.1")>]
 do ()
 
-let private redirect version assembly =
-    AppDomain.CurrentDomain.add_AssemblyResolve <|
-        ResolveEventHandler (fun _ x ->
-            if (AssemblyName x.Name).FullName = (assembly : AssemblyName).FullName then
-                let assembly =
-                    assembly
-                assembly.Version <- version
-                Assembly.Load assembly
-            else
-                null)
-
-AssemblyName "FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
-|> redirect (Version "4.4.0.0")
-
 type private Args =
     | [<MainCommand>]
       AsmPath of asmPath : string

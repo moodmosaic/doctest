@@ -20,4 +20,7 @@
       <dependency id="Unquote" version="3.2.0" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="bin/Release/Doctest.exe.config" target="lib/net452" />
+  </files>
 </package>
