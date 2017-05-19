@@ -3,6 +3,23 @@
 ; assembly: System.Reflection.AssemblyVersion     ("0.0.1")>]
 do ()
 
+open System
+open System.Reflection
+
+let private redirect version assembly =
+    AppDomain.CurrentDomain.add_AssemblyResolve <|
+        ResolveEventHandler (fun _ x ->
+            if (AssemblyName x.Name).FullName = (assembly : AssemblyName).FullName then
+                let assembly =
+                    assembly
+                assembly.Version <- version
+                Assembly.Load assembly
+            else
+                null)
+
+AssemblyName "FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+|> redirect (Version "4.4.0.0")
+
 open FSharp.Data
 
 type private XmlDoc =
