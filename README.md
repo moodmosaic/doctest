@@ -4,7 +4,7 @@ doctest
 > Test interactive F# examples.
 
 [doctest][doctest] is a small program that checks examples in [XML Documentation][xml-doc].
-It is similar to the [popular Haskell library with the same name][haskell].
+It is similar to the [popular Haskell program with the same name][haskell].
 
 ## Building
 
