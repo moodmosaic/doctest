@@ -1,10 +1,14 @@
-﻿[<assembly: System.Reflection.AssemblyTitle       ("Doctest")
-; assembly: System.Reflection.AssemblyDescription ("Test interactive F# examples.")
-; assembly: System.Reflection.AssemblyVersion     ("0.0.1")>]
-do ()
-
-open System
+﻿open System
+open System.IO
 open System.Reflection
+open Argu
+open FSharp.Data
+open Microsoft.FSharp.Compiler.Interactive.Shell
+
+[<assembly: AssemblyTitle       ("Doctest")
+; assembly: AssemblyDescription ("An implementation of Haskell Doctest for F#.")
+; assembly: AssemblyVersion     ("0.0.1")>]
+do ()
 
 let private redirect version assembly =
     AppDomain.CurrentDomain.add_AssemblyResolve <|
@@ -20,7 +24,18 @@ let private redirect version assembly =
 AssemblyName "FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
 |> redirect (Version "4.4.0.0")
 
-open FSharp.Data
+type private Args =
+    | [<MainCommand>]
+      AsmPath of asmPath : string
+    | DocPath of docPath : string
+    | FsiPath of fsiPath : string
+with
+    interface IArgParserTemplate with
+        member x.Usage =
+            match x with
+            | AsmPath _ -> "path of the assembly containing doctests."
+            | DocPath _ -> "path of the assembly's XML documentation."
+            | FsiPath _ -> "path of the F# Interactive (fsi/fsharpi)."
 
 type private XmlDoc =
     XmlProvider<
@@ -38,30 +53,6 @@ type private XmlDoc =
                    </member>
                </members>
            </doc>""">
-
-open System
-
-let private getDefaultFsi () =
-    // http://www.mono-project.com/docs/faq/technical/
-    // #how-to-detect-the-execution-platform
-    match int Environment.OSVersion.Platform with
-    | 4 | 128 -> "fshapri" // Linux
-    | 6       -> "fsharpi" // macOS
-    | _       -> "fsi"     // WinNT
-
-open System.IO
-
-let private guessDocsPath asmPath =
-    Path.ChangeExtension (asmPath, ".XML")
-
-let private unquotePath =
-    let combine path1 path2 =
-        Path.Combine (path2, path1) 
-    Path.GetDirectoryName (
-        System.Reflection.Assembly.GetExecutingAssembly().Location)
-    |> combine "Unquote.dll"
-
-open Microsoft.FSharp.Compiler.Interactive.Shell
 
 module Runner =
     let setup (x : string) (fsi : FsiEvaluationSession) =
@@ -102,21 +93,6 @@ module Runner =
                    result := false)
         !result
 
-open Argu
-
-type private Args =
-    | [<MainCommand>]
-      AsmPath of asmPath : string
-    | DocPath of docPath : string
-    | FsiPath of fsiPath : string
-with
-    interface IArgParserTemplate with
-        member x.Usage =
-            match x with
-            | AsmPath _ -> "path of the assembly containing doctests."
-            | DocPath _ -> "path of the assembly's XML documentation."
-            | FsiPath _ -> "path of the F# Interactive (fsi/fsharpi)."
-
 [<EntryPoint>]
 let main (argv : string []) : int =
     let pExiter =
@@ -135,12 +111,19 @@ let main (argv : string []) : int =
     let docPath =
         cliArgs.GetResult (
               <@ DocPath @>
-            , defaultValue = guessDocsPath asmPath)
+            , defaultValue =
+                  Path.ChangeExtension (asmPath, ".XML"))
 
     let fsiPath =
         cliArgs.GetResult (
               <@ FsiPath @>
-            , defaultValue = getDefaultFsi ())
+            , defaultValue =
+                  // http://www.mono-project.com/docs/faq/technical/
+                  // #how-to-detect-the-execution-platform
+                  match int Environment.OSVersion.Platform with
+                  | 4 | 128 -> "fshapri"
+                  | 6       -> "fsharpi"
+                  | _       -> "fsi")
 
     let fsiSession =
         FsiEvaluationSession.Create (
@@ -163,6 +146,13 @@ let main (argv : string []) : int =
 
     fsiSession.EvalInteraction <|
         sprintf "open %s;;" xmlDoc.Assembly.Name
+
+    let unquotePath =
+        let combine path1 path2 =
+            Path.Combine (path2, path1)
+        Path.GetDirectoryName (
+            System.Reflection.Assembly.GetExecutingAssembly().Location)
+        |> combine "Unquote.dll"
 
     fsiSession.EvalInteraction <|
         sprintf """#r @"%s";;""" unquotePath
