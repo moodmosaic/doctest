@@ -86,6 +86,6 @@
     <Exec WorkingDirectory="$(BaseDir)" Command="nuget restore -PackagesDirectory packages" />
   </Target>
   <Target Name="AfterBuild" Condition="'$(Configuration)' == 'Release' ">
-    <Exec WorkingDirectory="$(BaseDir)" Command="nuget pack Doctest.fsproj -Properties Configuration=Release -OutputDirectory $(OutDir)NuGet\" />
+    <Exec WorkingDirectory="$(BaseDir)" Command="nuget pack Doctest.fsproj -Properties Configuration=Release" />
   </Target>
 </Project>
