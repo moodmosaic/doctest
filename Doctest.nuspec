@@ -11,8 +11,6 @@
     <description>$description$</description>
     <copyright>Copyright 2017</copyright>
     <tags>fsharp testing</tags>
-    <dependencies>
-    </dependencies>
   </metadata>
   <files>
     <file src="bin/Release/Doctest.exe.config" target="lib/net452" />
