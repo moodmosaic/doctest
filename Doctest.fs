@@ -7,7 +7,7 @@ open Microsoft.FSharp.Compiler.Interactive.Shell
 
 [<assembly: AssemblyTitle       ("Doctest")
 ; assembly: AssemblyDescription ("An implementation of Haskell Doctest for F#.")
-; assembly: AssemblyVersion     ("0.0.4")>]
+; assembly: AssemblyVersion     ("0.0.5")>]
 do ()
 
 type private Args =
