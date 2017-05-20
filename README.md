@@ -22,12 +22,6 @@ Change to the doctest directory:
 cd doctest
 ```
 
-Install all referenced packages:
-
-```
-nuget restore -PackagesDirectory packages
-```
-
 Build the project:
 
 ```
