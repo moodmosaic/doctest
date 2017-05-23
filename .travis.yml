@@ -1,0 +1,10 @@
+language: csharp
+
+sudo: false
+
+script:
+  - msbuild Doctest.fsproj /p:Configuration=Release
+
+branches:
+  only:
+    - master
