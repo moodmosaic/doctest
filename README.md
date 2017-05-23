@@ -1,4 +1,4 @@
-doctest
+doctest [![NuGet][nuget-shield]][nuget] [![Travis][travis-shield]][travis]
 ========
 
 > Test interactive F# examples.
@@ -33,3 +33,9 @@ msbuild Doctest.fsproj /p:Configuration=Release
  [haskell]: http://hackage.haskell.org/package/doctest
  [msbuild]: https://github.com/Microsoft/msbuild
  [nugetdl]: https://dist.nuget.org/index.html
+
+ [nuget]: https://www.nuget.org/packages/Doctest/
+ [nuget-shield]: https://img.shields.io/nuget/dt/Doctest.svg?style=flat
+
+ [travis]: https://travis-ci.org/moodmosaic/doctest
+ [travis-shield]: https://travis-ci.org/moodmosaic/doctest.svg?branch=master
