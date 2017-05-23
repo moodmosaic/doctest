@@ -3,7 +3,9 @@ language: csharp
 sudo: false
 
 script:
-  - msbuild Doctest.fsproj /p:Configuration=Release
+  - git clean -dxf
+  - nuget restore -PackagesDirectory packages
+  - msbuild Doctest.fsproj /p:Configuration=Debug
 
 branches:
   only:

@@ -82,7 +82,7 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <Target Name="BeforeBuild">
+  <Target Name="BeforeBuild" Condition="'$(Configuration)' == 'Release' ">
     <Exec WorkingDirectory="$(BaseDir)" Command="nuget restore -PackagesDirectory packages" />
   </Target>
   <Target Name="AfterBuild" Condition="'$(Configuration)' == 'Release' ">
