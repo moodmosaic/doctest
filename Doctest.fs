@@ -72,7 +72,7 @@ module Runner =
                    (Option.get <|
                        fsi.EvalExpression test).ReflectionValue :?> bool
                if not passed then
-                   printfn "%s;;" <| test.Replace ("\"", "")
+                   printf "%s" <| expected + " = " + actual
                    fsi.EvalExpression
                        <| expected + " =! " + "(" + actual + ")"
                        |> ignore
